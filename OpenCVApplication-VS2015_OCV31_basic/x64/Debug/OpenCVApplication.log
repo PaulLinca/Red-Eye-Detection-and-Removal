@@ -1,5 +1,4 @@
 ﻿  OpenCVApplication.cpp
-d:\faculta\an 3\sem2\ip\ip-project\opencvapplication-vs2015_ocv31_basic\opencvapplication.cpp(25): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
   OpenCVApplication.vcxproj -> D:\Faculta\An 3\Sem2\IP\IP-Project\OpenCVApplication-VS2015_OCV31_basic\x64\Debug\OpenCVApplication.exe
   OpenCVApplication.vcxproj -> D:\Faculta\An 3\Sem2\IP\IP-Project\OpenCVApplication-VS2015_OCV31_basic\x64\Debug\OpenCVApplication.pdb (Full PDB)
   OpenCV\dll\Debug\opencv_ffmpeg310_64.dll
