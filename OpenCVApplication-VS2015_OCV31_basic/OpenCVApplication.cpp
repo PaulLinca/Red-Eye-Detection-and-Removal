@@ -38,13 +38,42 @@ void maskRedColor(Mat src, Mat redMask)
 			}
 
 			//check if the hue is in the range of the red color
-			if ((h >= 350 && h <= 360) || (h >= 0 && h <= 5))
+			if ((h >= 320 && h <= 360) || (h >= 0 && h <= 5))
 			{
 				redMask.at<uchar>(i, j) = 255; //color the pixel with white
 			}
 			else redMask.at<uchar>(i, j) = 0; //color the pixel with black
 		}
 	}
+}
+
+Mat fixRedEye(Mat redMask, Mat src)
+{
+	Mat fixedImage = src.clone();
+
+	//for each masked pixel average the red and blue channels of the original image and give the resulting value to the fixed image pixel
+	for (int i = 0; i < redMask.rows; i++)
+	{
+		for (int j = 0; j < redMask.cols; j++)
+		{
+			Vec3b pixel = src.at<Vec3b>(i, j);
+
+			if (redMask.at<uchar>(i, j) == 255)
+			{
+				int blue = pixel[0];
+				int green = pixel[1];
+				int average = (blue + green) / 2;
+
+				fixedImage.at<Vec3b>(i, j) = Vec3b(average, average, average);
+			}
+			else
+			{
+				fixedImage.at<Vec3b>(i, j) = pixel;
+			}
+		}
+	}
+
+	return fixedImage;
 }
 
 int main()
@@ -59,10 +88,13 @@ int main()
 
 	//create a mask for the red colors
 	Mat redMask(src.rows, src.cols, CV_8UC1);
-
 	maskRedColor(src, redMask);
 
-	imshow("Red mask", redMask);
+	//fix red eye effect
+	Mat fixedImage = fixRedEye(redMask, src);
+
 	imshow("Original image", src);
+	imshow("Red mask", redMask);
+	imshow("Fixed image", fixedImage);
 	waitKey();
 }
