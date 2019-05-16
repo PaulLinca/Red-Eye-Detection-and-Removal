@@ -1,5 +1,20 @@
 #include "stdafx.h"
 #include "common.h"
+#include <queue>
+
+void ignoreLabel(Mat labels, int k)
+{
+	for (int i = 0; i < labels.rows; i++)
+	{
+		for (int j = 0; j < labels.cols; j++)
+		{
+			if (labels.at<int>(i, j) == k)
+			{
+				labels.at<int>(i, j) = -1;
+			}
+		}
+	}
+}
 
 void maskRedColor(Mat src, Mat redMask)
 {
@@ -47,6 +62,136 @@ void maskRedColor(Mat src, Mat redMask)
 	}
 }
 
+void openImage(Mat src, Mat openedImage)
+{
+	int di[8] = { 0, -1, -1, -1, 0, 1, 1, 1 };
+	int dj[8] = { 1, 1, 0, -1, -1, -1, 0, 1 };
+	bool toErode = false;
+
+	for (int i = 0; i < src.rows; i++)
+	{
+		for (int j = 0; j < src.cols; j++)
+		{
+			if (src.at<uchar>(i, j) == 0)
+			{
+				for (int k = 0; k < 8; k++)
+				{
+					if (i + di[k] < src.rows && i + di[k] > 0 && j + dj[k] < src.cols && j + dj[k] > 0)
+					{
+						if (src.at<uchar>(i + di[k], j + dj[k]) == 255)
+						{
+							toErode = true;
+						}
+					}
+				}
+			}
+			if (toErode)
+			{
+				openedImage.at<uchar>(i, j) = 255;
+			}
+			toErode = false;
+		}
+	}
+
+	Mat temp = openedImage.clone();
+
+	for (int i = 0; i < src.rows; i++)
+	{
+		for (int j = 0; j < src.cols; j++)
+		{
+			if (temp.at<uchar>(i, j) == 0)
+			{
+				for (int k = 0; k < 8; k++)
+				{
+					if (i + di[k] < src.rows && i + di[k] > 0 && j + dj[k] < src.cols && j + dj[k] > 0)
+					{
+						openedImage.at<uchar>(i + di[k], j + dj[k]) = 0;
+					}
+				}
+			}
+		}
+	}
+}
+
+void filterSmallAreas(Mat mask)
+{
+	int di[8] = { -1,-1,-1,0,1,1,1,0 };
+	int dj[8] = { -1,0,1,1,1,0,-1,-1 };
+	int label = 0;
+
+	Mat_<int> labels(mask.rows, mask.cols, 0);
+
+	for (int i = 0; i < mask.rows; i++)
+	{
+		for (int j = 0; j < mask.cols; j++)
+		{
+			if (mask.at<uchar>(i, j) == 255 && labels(i, j) == 0)
+			{
+				label++;
+				std::queue<Point> Q;
+				labels(i, j) = label;
+				Q.push(Point(j, i));
+				while (!Q.empty())
+				{
+					Point p = Q.front();
+					Q.pop();
+					uchar neighbors[8];
+					for (int k = 0; k < 7; k++)
+					{
+						int posi = p.y + di[k];
+						int posj = p.x + dj[k];
+						if (posi >= 0 && posi < mask.rows && posj >= 0 && posj < mask.cols)
+						{
+							if (mask.at<uchar>(posi, posj) == 255 && labels(posi, posj) == 0)
+							{
+								labels(posi, posj) = label;
+								Q.push(Point(posj, posi));
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	int toIgnore[100];
+	int countK = 0;
+
+	for (int k = 0; k < label; k++)
+	{ 
+		for (int i = 0; i < labels.rows; i++)
+		{
+			for (int j = 0; j < labels.cols; j++)
+			{
+				if (labels.at<int>(i, j) == k)
+				{
+					countK++;
+				}
+			}
+		}
+
+		if (countK < 100)
+		{
+			ignoreLabel(labels, k);
+		}
+		else
+			std::cout << countK << " ";
+
+		countK = 0;
+	}
+
+	for (int i = 0; i < mask.rows; i++)
+	{
+		for (int j = 0; j < mask.cols; j++)
+		{
+			if (labels.at<int>(i, j) == -1)
+			{
+				mask.at<uchar>(i, j) = 0;
+			}
+		}
+	}
+}
+
 Mat fixRedEye(Mat redMask, Mat src)
 {
 	Mat fixedImage = src.clone();
@@ -90,11 +235,18 @@ int main()
 	Mat redMask(src.rows, src.cols, CV_8UC1);
 	maskRedColor(src, redMask);
 
+	//Mat openedMask = redMask.clone();
+	//openImage(src, openedMask);
+	imshow("Mask", redMask);
+
+	filterSmallAreas(redMask);
+
 	//fix red eye effect
 	Mat fixedImage = fixRedEye(redMask, src);
 
 	imshow("Original image", src);
 	imshow("Red mask", redMask);
+	//imshow("Opened mask", openedMask);
 	imshow("Fixed image", fixedImage);
 	waitKey();
 }

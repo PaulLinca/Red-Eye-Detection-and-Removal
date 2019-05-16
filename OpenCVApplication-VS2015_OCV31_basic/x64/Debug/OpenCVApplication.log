@@ -1,4 +1,6 @@
 ﻿  OpenCVApplication.cpp
+d:\faculta\an 3\sem2\ip\ip-project\opencvapplication-vs2015_ocv31_basic\opencvapplication.cpp(157): warning C4101: 'toIgnore': unreferenced local variable
+d:\faculta\an 3\sem2\ip\ip-project\opencvapplication-vs2015_ocv31_basic\opencvapplication.cpp(138): warning C4101: 'neighbors': unreferenced local variable
   OpenCVApplication.vcxproj -> D:\Faculta\An 3\Sem2\IP\IP-Project\OpenCVApplication-VS2015_OCV31_basic\x64\Debug\OpenCVApplication.exe
   OpenCVApplication.vcxproj -> D:\Faculta\An 3\Sem2\IP\IP-Project\OpenCVApplication-VS2015_OCV31_basic\x64\Debug\OpenCVApplication.pdb (Full PDB)
   OpenCV\dll\Debug\opencv_ffmpeg310_64.dll
