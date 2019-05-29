@@ -2,6 +2,19 @@
 #include "common.h"
 #include <queue>
 
+bool inBounds(int i, int j, Mat src)
+{
+	if (i < 0 || i > src.rows)
+	{
+		return false;
+	}
+	if (j < 0 || j > src.cols)
+	{
+		return false;
+	}
+	return true;
+}
+
 void ignoreLabel(Mat labels, int k)
 {
 	for (int i = 0; i < labels.rows; i++)
@@ -121,6 +134,7 @@ void filterSmallAreas(Mat mask)
 
 	Mat_<int> labels(mask.rows, mask.cols, 0);
 
+	//label objects
 	for (int i = 0; i < mask.rows; i++)
 	{
 		for (int j = 0; j < mask.cols; j++)
@@ -135,7 +149,6 @@ void filterSmallAreas(Mat mask)
 				{
 					Point p = Q.front();
 					Q.pop();
-					uchar neighbors[8];
 					for (int k = 0; k < 7; k++)
 					{
 						int posi = p.y + di[k];
@@ -155,31 +168,61 @@ void filterSmallAreas(Mat mask)
 	}
 
 	int toIgnore[100];
-	int countK = 0;
+	int countK = 0; //area of labeled object
+	float t = 0; //thinness ratio
+	bool ok; //border flag
+	float p; //perimeter
 
-	for (int k = 0; k < label; k++)
+	for (int k = 1; k < label; k++)
 	{ 
+		ok = false;
+		p = 0;
+		countK = 0;
+
 		for (int i = 0; i < labels.rows; i++)
 		{
 			for (int j = 0; j < labels.cols; j++)
 			{
 				if (labels.at<int>(i, j) == k)
 				{
-					countK++;
+					countK++;	//increment area
+
+					//check if pixel is on the border
+					for (int kk = 0; kk <= 7; kk++)
+					{
+						int posi = i + di[kk];
+						int posj = j + dj[kk];
+						if (posi >= 0 && posi < mask.rows && posj >= 0 && posj < mask.cols)
+						{
+							if (labels.at<int>(posi, posj) != k)
+							{
+								ok = true;
+							}
+						}
+					}
+					if (ok)
+					{
+						p++;	//increment permimeter
+					}
+
+					ok = false;
 				}
 			}
 		}
 
-		if (countK < 100)
-		{
-			ignoreLabel(labels, k);
-		}
-		else
-			std::cout << countK << " ";
+		//p *= CV_PI / 4;
 
-		countK = 0;
+		// thinness ratio
+		t = 4 * CV_PI * countK / (p * p);
+		//printf("%d -> %f -> %f\n", countK, p, t);
+
+		if (countK < 100 || t < 0.21) //check if labeled object has a small area or isnt round
+		{
+			ignoreLabel(labels, k); //ignore the object
+		}
 	}
 
+	//get rid off unwanted areas
 	for (int i = 0; i < mask.rows; i++)
 	{
 		for (int j = 0; j < mask.cols; j++)
