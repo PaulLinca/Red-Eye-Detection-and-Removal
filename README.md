@@ -1,4 +1,4 @@
-# Red-Eye Detection and Removal - Work in Progress
+# Red-Eye Detection and Removal
 **Definition** <br/>
 The red-eye effect in photography is the common appearance of red pupils in color photographs of the eyes of humans and several other animals. In flash photography the light of the flash occurs too fast for the pupil to close, so much of the very bright light from the flash passes into the eye through the pupil, reflects off the fundus at the back of the eyeball and out through the pupil. The camera records this reflected light. The main cause of the red color is the ample amount of blood in the choroid which nourishes the back of the eye and is located behind the retina.
 
